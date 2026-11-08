@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#101923">
+<meta name="description" content="オリジナルのピクセルサッカークラブ経営ゲーム">
+<title>PIXEL FOOTBALL MANAGER</title>
+<style>
+:root{--bg:#101923;--panel:#1b2a37;--panel2:#243746;--line:#385064;--text:#edf4f5;--muted:#9eb2bd;--lime:#b8ef65;--gold:#ffd36a;--red:#ff7777;--blue:#70c7ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+button,select{font:inherit}button{border:1px solid var(--line);background:#2b4050;color:var(--text);padding:9px 12px;cursor:pointer;border-radius:5px}button:hover{filter:brightness(1.18)}button.primary{background:#46652c;border-color:#8ebc51;color:#f5ffe9}button:disabled{opacity:.4;cursor:not-allowed}
+header{padding:calc(13px + env(safe-area-inset-top)) 16px 13px;background:#0b1219;border-bottom:2px solid #6e9d3f;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{font-weight:900;letter-spacing:1px;color:var(--lime);font-size:17px}.sub{font-size:10px;color:var(--muted);margin-top:3px}.topstats{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted)}.topstats b{color:var(--text)}
+main{max-width:1200px;margin:auto;padding:14px 14px calc(24px + env(safe-area-inset-bottom))}.nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}.nav button.active{background:var(--lime);color:#17210e;border-color:var(--lime);font-weight:bold}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px;min-width:0}.panel h2{font-size:14px;margin:0 0 12px;color:var(--lime)}.panel h3{font-size:12px;margin:12px 0 7px;color:#d6e7ec}.muted{color:var(--muted)}.big{font-size:24px;font-weight:bold}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{background:#263b49;border:1px solid var(--line);padding:4px 7px;border-radius:4px;font-size:11px}.green{color:var(--lime)}.gold{color:var(--gold)}.red{color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:7px 5px;border-bottom:1px solid #304655}th{color:var(--muted);font-weight:normal}td.num,th.num{text-align:right}.player{cursor:pointer}.player:hover{background:#2a4050}.selected{background:#314b5c}.bar{height:7px;background:#344956;border-radius:10px;overflow:hidden;min-width:45px}.bar i{display:block;height:100%;background:var(--lime)}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+#pitch{width:100%;display:block;background:#417c3c;border:3px solid #d9e7ca;border-radius:5px;image-rendering:pixelated;touch-action:manipulation}
+.scoreline{text-align:center;font-size:19px;font-weight:bold;padding:7px}.eventlog{height:100px;overflow:auto;background:#111d26;padding:8px;border-radius:5px;font-size:11px;line-height:1.7;color:#c6d6dc}
+.notice{padding:9px;background:#263c2e;border-left:3px solid var(--lime);margin-bottom:10px;font-size:12px}.empty{text-align:center;color:var(--muted);padding:25px}
+footer{text-align:center;color:#718894;font-size:10px;padding:18px}
+@media(max-width:760px){main{padding:9px}.grid{grid-template-columns:1fr}.topstats{gap:8px;font-size:11px}.logo{font-size:15px}.panel{padding:11px}button{padding:9px 10px}}
+</style>
+</head>
+<body>
+<header>
+ <div><div class="logo">⚽ PIXEL FOOTBALL MANAGER</div><div class="sub">BUILD YOUR CLUB. BUILD YOUR LEGACY.</div></div>
+ <div class="topstats"><span>SEASON <b id="season">1</b></span><span>WEEK <b id="week">1</b></span><span>資金 <b id="money">¥12,000,000</b></span><span>ファン <b id="fans">850</b></span></div>
+</header>
+<main>
+ <div class="nav" id="nav">
+  <button class="active" data-page="home">クラブ</button><button data-page="squad">選手</button><button data-page="training">練習</button><button data-page="match">試合</button><button data-page="league">リーグ</button>
+ </div>
+ <div id="content"></div>
+</main>
+<footer>PIXEL FOOTBALL MANAGER · オリジナルサッカークラブ経営シミュレーション · prototype v0.1</footer>
+<script>
+const initialPlayers=[
+{id:1,name:"佐伯 陸",pos:"GK",age:24,ovr:66,pot:74,st:92,morale:78,skill:"反射神経",x:50,y:91},
+{id:2,name:"黒田 悠真",pos:"DF",age:27,ovr:64,pot:68,st:88,morale:75,skill:"対人守備",x:22,y:73},
+{id:3,name:"三浦 颯太",pos:"DF",age:22,ovr:61,pot:82,st:95,morale:82,skill:"ビルドアップ",x:42,y:75},
+{id:4,name:"藤井 健",pos:"DF",age:29,ovr:65,pot:66,st:84,morale:72,skill:"空中戦",x:59,y:75},
+{id:5,name:"長谷川 海",pos:"DF",age:23,ovr:62,pot:78,st:91,morale:80,skill:"スピード",x:79,y:73},
+{id:6,name:"小林 蓮",pos:"MF",age:25,ovr:67,pot:73,st:90,morale:81,skill:"パス",x:35,y:52},
+{id:7,name:"山本 蒼",pos:"MF",age:20,ovr:59,pot:88,st:96,morale:86,skill:"ドリブル",x:62,y:50},
+{id:8,name:"石川 大地",pos:"MF",age:28,ovr:66,pot:67,st:82,morale:74,skill:"ゲームメイク",x:50,y:42},
+{id:9,name:"田中 翔",pos:"FW",age:24,ovr:68,pot:79,st:93,morale:84,skill:"決定力",x:35,y:25},
+{id:10,name:"中村 蓮斗",pos:"FW",age:21,ovr:62,pot:85,st:97,morale:88,skill:"スピード",x:65,y:24},
+{id:11,name:"松本 誠",pos:"FW",age:31,ovr:65,pot:65,st:80,morale:76,skill:"ポストプレー",x:50,y:17},
+{id:12,name:"渡辺 直樹",pos:"GK",age:19,ovr:52,pot:76,st:98,morale:80,skill:"反射神経",x:50,y:90},
+{id:13,name:"吉田 晴",pos:"DF",age:20,ovr:55,pot:79,st:96,morale:82,skill:"スピード",x:20,y:72},
+{id:14,name:"岡本 陽",pos:"MF",age:26,ovr:60,pot:70,st:89,morale:78,skill:"運動量",x:70,y:51},
+{id:15,name:"井上 司",pos:"FW",age:18,ovr:51,pot:87,st:99,morale:90,skill:"ドリブル",x:48,y:20}
+];
+const teams=["石岡ユナイテッド","水戸ブルーフォックス","土浦レイカーズ","つくばアストロズ","鹿嶋シーガルズ","日立スチール","笠間オリオンズ","古河フェニックス"];
+let state={season:1,week:1,money:12000000,fans:850,players:initialPlayers,results:[],played:[],training:"balanced",formation:"4-3-3",selected:1,attack:"balanced",lastLog:["クラブの監督に就任しました。","今シーズンの目標：リーグ上位進出！"],lastMatch:null,table:teams.map((name,i)=>({name,pts:0,w:0,d:0,l:0,gf:0,ga:0}))};
+function save(){try{localStorage.setItem("pfm_save",JSON.stringify(state))}catch(e){}}
+function load(){try{let s=localStorage.getItem("pfm_save");if(s){let p=JSON.parse(s);if(p.players&&p.table)state=p}}catch(e){}}
+load();
+const $=id=>document.getElementById(id);
+function yen(n){return "¥"+Math.round(n).toLocaleString("ja-JP")}
+function header(){ $("season").textContent=state.season;$("week").textContent=state.week;$("money").textContent=yen(state.money);$("fans").textContent=state.fans.toLocaleString()}
+function avg(){return Math.round(state.players.slice(0,11).reduce((a,p)=>a+p.ovr,0)/11)}
+function render(){header();document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));({home:home,squad:squad,training:training,match:match,league:league}[page])()}
+let page="home";
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{page=b.dataset.page;render()});
+function home(){ $("content").innerHTML=`
+ <div class="notice">監督就任おめでとうございます。まずはチームを確認し、練習方針を決めて次の試合に備えましょう。</div>
+ <div class="grid">
+ <section class="panel"><h2>クラブ overview</h2><div class="row"><div><div class="muted">石岡ユナイテッド</div><div class="big green">OVR ${avg()}</div><div class="muted">地域リーグ · 目標 4位以内</div></div><div style="text-align:right"><div class="muted">クラブ評価</div><div class="big gold">★ ★ ☆</div><div class="muted">サポーター ${state.fans.toLocaleString()}人</div></div></div>
+ <h3>今週のスケジュール</h3><div class="chips"><span class="chip">月 練習</span><span class="chip">火 練習</span><span class="chip">水 休養</span><span class="chip">木 戦術</span><span class="chip">土 リーグ戦</span></div>
+ <div class="actions"><button class="primary" onclick="page='training';render()">練習を設定</button><button onclick="page='squad';render()">選手を確認</button><button onclick="page='match';render()">試合へ</button></div></section>
+ <section class="panel"><h2>クラブニュース</h2><div class="eventlog">${state.lastLog.slice(-6).reverse().map(x=>"› "+x).join("<br>")}</div><h3>経営状況</h3><div class="row"><span class="muted">週間運営費</span><b>${yen(420000)}</b></div><div class="row"><span class="muted">チケット・グッズ収入見込</span><b class="green">${yen(280000)}</b></div><div class="row"><span class="muted">選手平均スタミナ</span><b>${Math.round(state.players.reduce((a,p)=>a+p.st,0)/state.players.length)}%</b></div></section>
+ </div>
+ <div class="panel" style="margin-top:12px"><h2>注目選手</h2>${state.players.slice().sort((a,b)=>b.pot-a.pot).slice(0,3).map(p=>`<div class="row" style="padding:5px 0"><span>${p.name} <span class="muted">${p.pos} · ${p.age}歳</span></span><span>能力 ${p.ovr} / 潜在 ${p.pot}</span></div>`).join("")}</div>`}
+function squad(){$("content").innerHTML=`<div class="grid"><section class="panel"><h2>選手一覧 · ${state.players.length}名</h2><table><thead><tr><th>選手</th><th>位置</th><th class="num">年齢</th><th class="num">能力</th><th class="num">体力</th></tr></thead><tbody>${state.players.map(p=>`<tr class="player ${state.selected===p.id?'selected':''}" onclick="selectPlayer(${p.id})"><td>${p.name}</td><td>${p.pos}</td><td class="num">${p.age}</td><td class="num">${p.ovr}</td><td class="num">${p.st}%</td></tr>`).join("")}</tbody></table></section><section class="panel"><h2>選手詳細</h2>${playerDetail()}</section></div>`}
+function playerDetail(){let p=state.players.find(x=>x.id===state.selected)||state.players[0];return `<div class="big">${p.name}</div><div class="muted">${p.pos} · ${p.age}歳 · ${p.skill}</div><div class="row" style="margin-top:14px"><span>総合能力</span><b class="green big">${p.ovr}</b></div><div class="row"><span>潜在能力</span><b>${p.pot}</b></div><div class="row"><span>スタミナ</span><b>${p.st}%</b></div><div class="bar" style="margin:7px 0 14px"><i style="width:${p.st}%"></i></div><div class="row"><span>モチベーション</span><b>${p.morale}%</b></div><div class="bar" style="margin:7px 0"><i style="width:${p.morale}%"></i></div><p class="muted">能力は練習・試合経験・年齢によって変化します。潜在能力が高い選手ほど成長しやすくなります。</p>`}
+function selectPlayer(id){state.selected=id;render()}
+function training(){$("content").innerHTML=`<div class="grid"><section class="panel"><h2>週間トレーニング</h2><p class="muted">練習方針を選択してください。週を進めると選手の能力・体力に影響します。</p><div style="display:grid;gap:8px">${[["balanced","総合トレーニング","能力をバランスよく伸ばす。疲労は中程度。"],["attack","攻撃練習","FW・MFの攻撃能力が伸びやすい。疲労は高め。"],["defense","守備練習","DF・GKの守備能力が伸びやすい。疲労は高め。"],["fitness","フィジカル","スタミナ回復と体力強化。能力成長は控えめ。"],["rest","休養","体力・モチベーションを回復する。"]] .map(t=>`<label class="row" style="padding:10px;border:1px solid var(--line);border-radius:5px;cursor:pointer"><span><b>${t[1]}</b><br><span class="muted">${t[2]}</span></span><input type="radio" name="train" value="${t[0]}" ${state.training===t[0]?"checked":""} onchange="state.training=this.value;save()"></label>`).join("")}</div><div class="actions"><button class="primary" onclick="advanceWeek()">練習して次週へ進む</button></div></section><section class="panel"><h2>成長候補</h2>${state.players.slice().sort((a,b)=>(b.pot-b.ovr)-(a.pot-a.ovr)).slice(0,5).map(p=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)"><span>${p.name}<span class="muted"> ${p.pos}</span></span><span>現在 ${p.ovr} / 潜在 ${p.pot}</span></div>`).join("")}</section></div>`}
+function advanceWeek(){let t=state.training;state.players.forEach(p=>{if(t==="rest"){p.st=Math.min(100,p.st+18);p.morale=Math.min(100,p.morale+5)}else{p.st=Math.max(35,p.st-(t==="fitness"?5: t==="balanced"?10:15));p.morale=Math.min(100,p.morale+1);let fit=t==="fitness"?0.15:t==="balanced"?0.55:0.35;let role=(t==="attack"&&["FW","MF"].includes(p.pos))||(t==="defense"&&["DF","GK"].includes(p.pos));if(t!=="rest"&&Math.random()<(role?0.48:fit)*Math.max(.15,(p.pot-p.ovr+10)/30)&&p.ovr<p.pot)p.ovr++;}});state.week++;state.money-=140000;if(state.week%2===0){state.money+=260000;state.fans+=Math.floor(Math.random()*16)}if(state.week>10){state.week=1;state.season++;state.players.forEach(p=>{p.age+=1;if(p.age>30&&Math.random()<.35)p.ovr=Math.max(35,p.ovr-1)});state.lastLog.unshift("新シーズンが開幕しました。選手の年齢が1歳上がりました。")}state.lastLog.unshift("第"+state.week+"週：トレーニングを実施しました。");save();page="home";render()}
+function match(){let lm=state.lastMatch;$("content").innerHTML=`<div class="grid"><section class="panel"><h2>リーグ戦 · 第${state.week}節</h2><div class="scoreline">${lm?`${lm.home} ${lm.a} - ${lm.b} ${lm.away}`:"石岡ユナイテッド  -  対戦相手"}</div><canvas id="pitch" width="720" height="430"></canvas><div class="actions"><button class="primary" onclick="playMatch()" ${state.played.includes(state.season+"-"+state.week)?"disabled":""}>${state.played.includes(state.season+"-"+state.week)?"今節は試合済み":"試合を開始する"}</button><button onclick="state.attack='counter';save();alert('カウンター戦術に設定しました')">カウンター</button><button onclick="state.attack='possession';save();alert('ポゼッション戦術に設定しました')">ポゼッション</button></div><p class="muted">緑のピッチ上で選手が動き、パス・シュートを自動判定します。戦術と選手能力が結果に影響します。</p></section><section class="panel"><h2>試合経過</h2><div class="eventlog" id="matchlog">${lm?lm.log.join("<br>"):"試合を開始すると、ここに実況が表示されます。"}</div><h3>試合情報</h3><div class="row"><span>チーム総合力</span><b>${avg()}</b></div><div class="row"><span>戦術</span><b>${state.attack==="counter"?"カウンター":state.attack==="possession"?"ポゼッション":"バランス"}</b></div><div class="row"><span>平均スタミナ</span><b>${Math.round(state.players.slice(0,11).reduce((a,p)=>a+p.st,0)/11)}%</b></div></section></div>`;drawPitch()}
+function drawPitch(ballX=50,ballY=50,positions=null){let c=$("pitch");if(!c)return;let x=c.getContext("2d"),w=c.width,h=c.height;x.clearRect(0,0,w,h);for(let i=0;i<10;i++){x.fillStyle=i%2?"#438541":"#4b9145";x.fillRect(0,i*h/10,w,h/10)}x.strokeStyle="#e2efd6";x.lineWidth=3;x.strokeRect(18,18,w-36,h-36);x.beginPath();x.moveTo(w/2,18);x.lineTo(w/2,h-18);x.stroke();x.beginPath();x.arc(w/2,h/2,58,0,Math.PI*2);x.stroke();x.strokeRect(w/2-105,18,210,75);x.strokeRect(w/2-105,h-93,210,75);x.strokeRect(w/2-45,18,90,32);x.strokeRect(w/2-45,h-50,90,32);
+let ps=positions||state.players.slice(0,11).map(p=>({x:p.x/100*w,y:p.y/100*h,team:0,name:p.name}));ps.forEach((p,i)=>{x.fillStyle=p.team?"#f1d45d":"#e9f4ff";x.strokeStyle="#18242b";x.lineWidth=2;x.fillRect(p.x-9,p.y-9,18,18);x.strokeRect(p.x-9,p.y-9,18,18);x.fillStyle="#101820";x.font="bold 10px monospace";x.textAlign="center";x.fillText(p.team?"A":String(i+1),p.x,p.y+3)});x.fillStyle="#f8f3cf";x.beginPath();x.arc(ballX/100*w,ballY/100*h,6,0,Math.PI*2);x.fill();x.strokeStyle="#26312b";x.stroke()}
+function playMatch(){let key=state.season+"-"+state.week;if(state.played.includes(key))return;let teamPower=avg()+(state.players.slice(0,11).reduce((a,p)=>a+p.st,0)/11-70)*.12;let oppPower=58+Math.random()*13;let attackBonus=state.attack==="possession"?2:state.attack==="counter"?1:0;let a=0,b=0,log=["キックオフ！"];let positions=state.players.slice(0,11).map(p=>({x:p.x/100*720,y:p.y/100*430,team:0,name:p.name}));for(let m=1;m<=90;m+=5){let chance=(teamPower-oppPower+attackBonus+Math.random()*24-12);let bx=25+Math.random()*50,by=20+Math.random()*60;if(chance>10&&Math.random()<.23){a++;log.push(`${m}分 ⚽ ${state.players[8+Math.floor(Math.random()*3)].name} ゴール！`);bx=90;by=45+Math.random()*10}else if(chance< -8&&Math.random()<.13){b++;log.push(`${m}分 ⚽ 相手チームのゴール。`);bx=10;by=50}else if(Math.random()<.27){log.push(`${m}分 ${Math.random()<.5?"石岡がボールを保持。":"中盤で激しい攻防。"}`)}drawPitch(bx,by,positions.map(p=>({x:Math.max(25,Math.min(695,p.x+(Math.random()-.5)*34)),y:Math.max(25,Math.min(405,p.y+(Math.random()-.5)*24)),team:p.team})));}let outcome=a>b?"勝利":a===b?"引き分け":"敗北";log.push("試合終了！ "+outcome+"。");state.lastMatch={home:"石岡ユナイテッド",away:teams[(state.week-1)%teams.length],a,b,log};state.played.push(key);let t=state.table[0];t.gf+=a;t.ga+=b;if(a>b){t.w++;t.pts+=3;state.money+=450000;state.fans+=30}else if(a===b){t.d++;t.pts++;state.money+=250000;state.fans+=10}else{t.l++;state.money+=120000;state.fans=Math.max(100,state.fans-5)}state.players.slice(0,11).forEach(p=>{p.st=Math.max(25,p.st-12);p.morale=Math.min(100,Math.max(35,p.morale+(a>b?5:a===b?1:-4)))});state.lastLog.unshift(`第${state.week}節 ${outcome} ${a}-${b}`);save();render()}
+function league(){let sorted=state.table.map((t,i)=>({...t,club:i===0?"★ "+t.name:t.name})).sort((a,b)=>b.pts-a.pts||((b.gf-b.ga)-(a.gf-a.ga)));$("content").innerHTML=`<div class="grid"><section class="panel"><h2>地域リーグ順位表</h2><table><thead><tr><th>順位</th><th>クラブ</th><th class="num">勝点</th><th class="num">勝</th><th class="num">分</th><th class="num">敗</th><th class="num">得失</th></tr></thead><tbody>${sorted.map((t,i)=>`<tr style="${t.name==="石岡ユナイテッド"?"background:#304b38;font-weight:bold":""}"><td>${i+1}</td><td>${t.club}</td><td class="num">${t.pts}</td><td class="num">${t.w}</td><td class="num">${t.d}</td><td class="num">${t.l}</td><td class="num">${t.gf-t.ga}</td></tr>`).join("")}</tbody></table></section><section class="panel"><h2>リーグ情報</h2><div class="big green">8 CLUBS</div><p class="muted">架空の地域リーグ。各クラブと対戦し、勝ち点を積み重ねて上位を目指します。</p><h3>勝ち点ルール</h3><div class="row"><span>勝利</span><b>3点</b></div><div class="row"><span>引き分け</span><b>1点</b></div><div class="row"><span>敗北</span><b>0点</b></div><p class="muted">※現在はプロトタイプのため、対戦相手の試合結果は未実装です。</p></section></div>`}
+function resetGame(){if(confirm("セーブデータを消して最初から始めますか？")){localStorage.removeItem("pfm_save");location.reload()}}
+try {
+  render();
+} catch (err) {
+  const box = document.getElementById("content");
+  if (box) {
+    box.innerHTML = '<section class="panel"><h2>起動時にエラーが発生しました</h2><p>ページを再読み込みしてください。</p><pre style="white-space:pre-wrap;color:#ffaaaa;font-size:11px"></pre></section>';
+    box.querySelector("pre").textContent = String(err && (err.stack || err.message) || err);
+  }
+  console.error(err);
+}
+window.addEventListener("error", function (event) {
+  console.error("PFM runtime error:", event.message, event.error);
+});
+</script>
+</body></html>
